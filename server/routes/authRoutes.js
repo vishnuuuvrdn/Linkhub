@@ -7,7 +7,7 @@ router.post("/register", register);
 router.post("/login", login);
 router.post("/refresh", refresh);
 router.post("/verify-email", verifyEmail);
-router.post("/verify-token", verifyToken);
+router.post("/verify-token",  verifyToken);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 

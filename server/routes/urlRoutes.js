@@ -7,6 +7,5 @@ const authMiddleware = require("../middlewares/authMiddleware")
 router.post("/", authMiddleware, generateShortUrl)
 router.get("/", authMiddleware, getShortUrlDetails)
 router.delete("/:customSlung", authMiddleware, removeShortUrl)
-router.get("/r/:customSlung", authMiddleware, getOriginalUrl)
 
 module.exports = router;
