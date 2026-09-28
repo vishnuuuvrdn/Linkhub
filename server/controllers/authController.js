@@ -43,7 +43,7 @@ const register = async (req, res) => {
 
     res.status(201).json({ 
       message: "User registered successfully",
-      user: userResponse,
+      user
     });
   } catch (error) {
     console.log(error.message);
@@ -281,8 +281,8 @@ const forgotPassword = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(200).json({
-        message: "If the email exists, a password reset link has been sent.",
+      return res.status(400).json({
+        message: "User Not exist, please create an account.",
       });
     }
 
@@ -323,7 +323,7 @@ const forgotPassword = async (req, res) => {
     });
 
     res.status(200).json({
-      message: "If the email exists, a password reset link has been sent.",
+      message: "Password reset link has been sent to your email.",
     });
   } catch (error) {
     console.log("Error while sending reset email:", error.message);
@@ -366,10 +366,10 @@ const resetPassword = async (req, res) => {
     await user.save();
 
     res.status(200).json({
-      message: "Your password was reset successfully",
+      message: "Your password has been reset successfully",
     });
   } catch (error) {
-    console.log("Error from resetPassword:", error.message);
+    console.log("Error while resetPassword:", error.message);
 
     res.status(500).json({
       message: "Try resetting your password later",

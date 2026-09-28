@@ -2,7 +2,6 @@ const { Url, Analytics } = require("../models/urlModel");
 const crypto = require("crypto");
 require("dotenv").config();
 const {UAParser} = require('ua-parser-js')
-const { stringify } = require("flatted");
 
 const generateShortCode = () => {
   return crypto.randomBytes(3).toString("hex");
