@@ -12,6 +12,22 @@ const urlSchema = new Schema({
     createdAt : Date
 });
 
-const Url = mongoose.model("Url", urlSchema);
+const analyticsSchema = new Schema({
+  userId : String,
+  customSlung: {
+    type: String,
+    unique: true,
+  },
+  totalClicks: Number,
+  lastClickTimeStamp: Date,
+  deviceDistribution: {
+    Mobile: Number,
+    Desktop: Number,
+    Other : Number
+  },
+});
 
-module.exports = Url;
+const Url = mongoose.model("Url", urlSchema);
+const Analytics = mongoose.model("Analytics", analyticsSchema)
+
+module.exports = { Url, Analytics};

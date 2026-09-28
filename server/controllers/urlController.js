@@ -1,6 +1,8 @@
-const Url = require("../models/urlModel");
+const { Url, Analytics } = require("../models/urlModel");
 const crypto = require("crypto");
 require("dotenv").config();
+const {UAParser} = require('ua-parser-js')
+const { stringify } = require("flatted");
 
 const generateShortCode = () => {
   return crypto.randomBytes(3).toString("hex");
@@ -135,21 +137,54 @@ const removeShortUrl = async (req, res) => {
   }
 };
 
-const getOriginalUrl = async (req, res) => {
+const redirectToOriginal = async (req, res) => {
   try {
     const { customSlung } = req.params;
+    const userAgent = req.get("User-Agent") || "";
+    const parser = new UAParser(userAgent);
+    const parserResult = parser.getResult();
+    const lastClickTimeStamp = new Date();
 
-    const response = await Url.findOne({
+    const url = await Url.findOne({
       customSlung,
     });
 
-    if (!response) {
+    if (!url) {
       return res.status(404).json({
         message: "URL not found",
       });
     }
 
-    return res.redirect(302, response.originalUrl);
+    let analytics = await Analytics.findOne({customSlung});
+
+    if(!analytics){
+      analytics = new Analytics({
+        userId : url.userId,
+        customSlung,
+        totalClicks: 0,
+        lastClickTimeStamp,
+        deviceDistribution: {
+          Mobile: 0,
+          Desktop: 0,
+          Other: 0
+        },
+      });
+    }
+
+    const os = parserResult.os.name;
+    if(os == 'Windows' || os == 'Linux' || os == 'macOs'){
+      analytics.deviceDistribution.Desktop++;
+    }else if(os == 'iOS' || os == 'Android'){
+      analytics.deviceDistribution.Mobile++;
+    }else{
+      analytics.deviceDistribution.Other++;
+    }
+
+    analytics.totalClicks++;
+    analytics.lastClickTimeStamp = lastClickTimeStamp;
+    await analytics.save();
+
+    return res.redirect(302, url.originalUrl);
   } catch (error) {
     console.log("ERROR while redirecting URL:", error.message);
 
@@ -159,4 +194,27 @@ const getOriginalUrl = async (req, res) => {
   }
 };
 
-module.exports = { generateShortUrl, getShortUrlDetails, removeShortUrl, getOriginalUrl,};
+const getAnalytics = async (req, res) => {
+  try{
+    const userId = req.user.userId;
+    const analytics = await Analytics.find({ userId });
+
+    if(analytics.length == 0){
+      return res.status(500).json({message : `No one Clicked Your Urls yet.`})
+    }
+
+    res.status(200).json(analytics);
+  }
+  catch(error){
+    console.log("Error while fetching analytics:", error.message);
+    res.status(500).json({mesaage: "Not able fetch analytics"})
+  }
+}
+
+module.exports = {
+  generateShortUrl,
+  getShortUrlDetails,
+  removeShortUrl,
+  redirectToOriginal,
+  getAnalytics,
+};
