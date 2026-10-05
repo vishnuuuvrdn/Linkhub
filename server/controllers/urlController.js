@@ -92,15 +92,48 @@ const getShortUrlDetails = async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    const response = await Url.find({
+    let { page = 1, limit = 10 } = req.query;
+
+    page = parseInt(page);
+    limit = parseInt(limit);
+
+    if (page < 1) {
+      page = 1;
+    }
+
+    if (limit < 1 || limit > 100) {
+      limit = 10;
+    }
+
+    const skip = (page - 1) * limit;
+
+    const totalLinks = await Url.countDocuments({
       userId,
-    }).sort({
-      createdAt: -1,
     });
 
-    res.status(200).json(response);
+    const links = await Url.find({
+      userId,
+    })
+    .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalPages = Math.ceil(totalLinks / limit);
+
+    res.status(200).json({ success: true, links, pagination: {
+        currentPage: page,
+        limit,
+        totalLinks,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    });
   } catch (error) {
-    console.log("ERROR while fetching shortUrl details:", error.message);
+    console.log(
+      "ERROR while fetching shortUrl details:",
+      error.message
+    );
 
     res.status(500).json({
       message: "Can't fetch URL details. Try again later",
