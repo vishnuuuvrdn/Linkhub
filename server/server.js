@@ -3,6 +3,8 @@ const app = express();
 const connectDb = require('./db');
 connectDb();
 const cookieParser = require('cookie-parser');
+require('dotenv').config();
+const cors = require('cors');
 
 const authRoutes = require("./routes/authRoutes");
 const urlRoutes = require("./routes/urlRoutes");
@@ -11,6 +13,10 @@ const bioRoutes = require("./routes/bioRoutes")
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(cors({
+    origin: process.env.CLIENT_URL,
+    credential: true
+}))
 
 app.get("/", (req, res) => res.send("API Working"));
 app.use("/api/auth", authRoutes);
