@@ -1,0 +1,31 @@
+name: "LinkHub"
+
+services:
+  web:
+    build: "./client"
+    depends_on:
+      - api
+    ports:
+      - 5173:5173
+    env_file:
+      - ./client/.env
+    develop:
+      watch:
+        - action: sync
+          path: ./client/src
+          target: /app/src
+        - action: rebuild
+          path: ./client/package.json
+  api:
+    build: "./server"
+    ports:
+      - 5000:5000
+    env_file:
+      - ./server/.env
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./server/src
+          target: /app/src
+        - action: rebuild
+          path: ./server/package.json
