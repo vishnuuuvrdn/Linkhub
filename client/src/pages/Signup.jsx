@@ -1,134 +1,71 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Field from '../components/Field';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import Field from "../components/Field";
+import { AuthSplit, Notice, btnLime, display, linkClass } from "../components/ui";
+import { authApi } from "../api/services";
+import { getErrorMessage } from "../api/api";
 
-const Signup = () => {
-    const [formData, setFormData] = useState({
-        name: "",
-        email: "",
-        password: "",
-        confirmPassword: ""
-    });
+export default function Signup() {
+    const [formData, setFormData] = useState({ name: "", email: "", password: "", confirmPassword: "" });
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prevFormData) => ({
-            ...prevFormData,
-            [name]: value
-        }));
+        setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
     const hasConfirm = formData.confirmPassword.length > 0;
     const isMismatch = hasConfirm && formData.password !== formData.confirmPassword;
-    const passMatch = !hasConfirm
-        ? ""
-        : isMismatch
-            ? "Passwords don't match"
-            : "Passwords match";
+    const passMatch = !hasConfirm ? "" : isMismatch ? "Passwords don't match" : "Passwords match";
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (isMismatch) return;
+        setError("");
+        setLoading(true);
+        try {
+            const { confirmPassword, ...payload } = formData;
+            await authApi.register(payload);
+            navigate("/login", { state: { registered: true } });
+        } catch (err) {
+            setError(getErrorMessage(err));
+            setLoading(false);
+        }
     };
 
     return (
-        <div className="grid min-h-dvh w-full bg-stone-100 lg:grid-cols-2">
-            <aside className="relative hidden min-h-0 overflow-hidden bg-green-950 bg-[url('/auth-bg.svg')] bg-cover bg-bottom-right bg-no-repeat p-[clamp(2rem,5vw,4.5rem)] text-stone-100 lg:flex lg:flex-col lg:justify-between">
-
-                <span className="relative text-[clamp(1rem,1.4vw,1.25rem)] font-semibold tracking-tight">
-                    LinkHub
-                </span>
-
-                <div className="relative max-w-[min(28rem,100%)]">
-                    <p className="text-[clamp(2rem,4vw,3.5rem)] font-semibold leading-[1.08] tracking-tight">
-                        One link. Endless possibilities.
-                    </p>
-                    <p className="mt-[clamp(0.75rem,2vh,1.25rem)] max-w-sm text-[clamp(0.9rem,1.1vw,1rem)] leading-7 text-stone-300">
-                        Bring your content, socials, and favorite links together.
-                    </p>
+        <AuthSplit reverse title={<>One link.<br />Endless<br />possibilities.</>} text="Shorten links, build your bio page and see what gets clicked.">
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <h1 className={`${display} text-[2.125rem] leading-tight`}>Create your account</h1>
+                    <p className="mt-1 text-[15px] text-mute">Free to start. No credit card.</p>
                 </div>
-            </aside>
 
-            <main className="flex min-h-0 items-center justify-center p-[clamp(0.75rem,3vw,3.5rem)]">
-                <form
-                    onSubmit={handleSubmit}
-                    className="w-full max-w-md rounded-2xl bg-stone-50 p-[clamp(1.25rem,4.5vh,2.5rem)] shadow-xl shadow-stone-900/10 ring-1 ring-stone-200 sm:px-[clamp(1.5rem,3vw,2.5rem)]"
-                >
-                    <h1 className="text-[clamp(1.25rem,3.4vh,1.5rem)] font-semibold tracking-tight text-stone-900">
-                        Create your account
-                    </h1>
-                    <p className="mt-1 text-sm text-stone-600">Fill in the details below to get started.</p>
-
-                    <div className="mt-[clamp(0.75rem,3vh,2rem)] flex flex-col gap-[clamp(0.5rem,2vh,1.25rem)]">
-                        <Field
-                            id="name"
-                            label="Name"
-                            placeholder="John"
-                            autoComplete="given-name"
-                            value={formData.name}
-                            onChange={handleChange}
-                        />
-
-                        <Field
-                            id="email"
-                            label="Email"
-                            type="email"
-                            placeholder="you@example.com"
-                            autoComplete="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                        />
-
-                        <Field
-                            id="password"
-                            label="Password"
-                            type="password"
-                            placeholder="Create a password"
-                            autoComplete="new-password"
-                            value={formData.password}
-                            onChange={handleChange}
-                        />
-
-                        <Field
-                            id="confirmPassword"
-                            label="Confirm password"
-                            type="password"
-                            placeholder="Re-enter your password"
-                            autoComplete="new-password"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                        >
-                            <p
-                                aria-live="polite"
-                                className={`mt-1.5 min-h-5 text-sm font-medium ${isMismatch ? "text-rose-600" : "text-green-700"}`}
-                            >
-                                {passMatch}
-                            </p>
-                        </Field>
-                    </div>
-
-                    <button
-                        type="submit"
-                        className="mt-[clamp(0.5rem,2vh,1.5rem)] w-full cursor-pointer rounded-lg bg-green-950 px-4 py-[clamp(0.55rem,1.6vh,0.8rem)] text-sm font-semibold text-stone-50 shadow-sm transition duration-200 hover:bg-green-900 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-400/50 active:scale-[0.99]"
-                    >
-                        Sign up
-                    </button>
-
-                    <p className="mt-[clamp(0.75rem,2.4vh,1.5rem)] text-center text-sm text-stone-600">
-                        Already have an account?{" "}
-                        <button
-                            type="button"
-                            onClick={() => navigate('/login')}
-                            className="cursor-pointer font-semibold text-green-900 underline decoration-amber-400 decoration-2 underline-offset-4 hover:text-green-950 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-400/50"
-                        >
-                            Log in
-                        </button>
+                <Field id="name" label="Name" placeholder="John" autoComplete="given-name"
+                    value={formData.name} onChange={handleChange} required />
+                <Field id="email" label="Email" type="email" placeholder="you@example.com"
+                    autoComplete="email" value={formData.email} onChange={handleChange} required />
+                <Field id="password" label="Password" type="password" placeholder="Create a password"
+                    autoComplete="new-password" value={formData.password} onChange={handleChange} required />
+                <Field id="confirmPassword" label="Confirm password" type="password" placeholder="Re-enter your password"
+                    autoComplete="new-password" value={formData.confirmPassword} onChange={handleChange} required>
+                    <p aria-live="polite" className={`mt-1.5 min-h-4 text-xs font-semibold ${isMismatch ? "text-rose-600" : "text-ink"}`}>
+                        {passMatch}
                     </p>
-                </form>
-            </main>
-        </div>
-    );
-};
+                </Field>
 
-export default Signup;
+                <Notice>{error}</Notice>
+
+                <button type="submit" disabled={loading || isMismatch} className={`${btnLime} w-full`}>
+                    {loading ? "Creating account…" : "Sign up"}
+                </button>
+
+                <p className="pt-1 text-center text-sm text-mute">
+                    Already have an account? <Link to="/login" className={linkClass}>Log in</Link>
+                </p>
+            </form>
+        </AuthSplit>
+    );
+}

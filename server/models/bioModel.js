@@ -14,7 +14,13 @@ const bioSchema = new Schema({
     linkedin: String,
     twitter: String,
     instagram: String,
-  }
+  },
+  customLinks: [{
+    _id: false,
+    title: { type: String, trim: true, maxlength: 40 },
+    url: { type: String, required: true, trim: true },
+    icon: { type: String, default: "link" },
+  }],
 });
 
 const Bio = mongoose.model("Bio", bioSchema);

@@ -377,6 +377,14 @@ const resetPassword = async (req, res) => {
   }
 };
 
+
+const logout = (req, res) => {
+  const opts = { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict" };
+  res.clearCookie("accessToken", opts);
+  res.clearCookie("refreshToken", opts);
+  res.status(200).json({ message: "Logged out" });
+};
+
 module.exports = {
   register,
   login,
@@ -385,4 +393,5 @@ module.exports = {
   verifyToken,
   forgotPassword,
   resetPassword,
+  logout
 };
