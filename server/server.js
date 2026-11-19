@@ -23,6 +23,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/links", urlRoutes);
 app.use("/api/bio", bioRoutes);
 
+app.get("/r/:handle/:customSlung", redirectToOriginal);
 app.get("/r/:customSlung", redirectToOriginal);
 
 app.listen(5000, () => {

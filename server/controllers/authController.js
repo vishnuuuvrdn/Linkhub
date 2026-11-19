@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const generateTokens = require("../middlewares/tokenGenerator");
+const { findBioForUser } = require("./bioController");
 
 const register = async (req, res) => {
   try {
@@ -38,12 +39,13 @@ const register = async (req, res) => {
       id: user._id,
       name: user.name,
       email: user.email,
+      handle: user.handle,
       emailVerified: user.emailVerified,
     };
 
     res.status(201).json({ 
       message: "User registered successfully",
-      user
+      user: userResponse
     });
   } catch (error) {
     console.log(error.message);
@@ -90,14 +92,25 @@ const login = async (req, res) => {
       maxAge: 15 * 60 * 1000,
     });
 
+    const bio = await findBioForUser(user._id, user);
+
     res.status(200).json({
       message: "Login successful",
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
+        handle: bio ? bio.username : user.handle,
+        displayName: bio ? bio.displayName : user.name,
+        username: bio ? bio.username : user.handle,
         emailVerified: user.emailVerified,
       },
+      bio: bio ? {
+        username: bio.username,
+        displayName: bio.displayName,
+        socialLinks: bio.socialLinks || {},
+        customLinks: bio.customLinks || [],
+      } : null,
     });
   } catch (error) {
     console.log(error.message);
@@ -385,6 +398,39 @@ const logout = (req, res) => {
   res.status(200).json({ message: "Logged out" });
 };
 
+const getMe = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    const bio = await findBioForUser(user._id, user);
+
+    res.status(200).json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        handle: bio ? bio.username : user.handle,
+        displayName: bio ? bio.displayName : user.name,
+        username: bio ? bio.username : user.handle,
+        emailVerified: user.emailVerified,
+      },
+      bio: bio ? {
+        username: bio.username,
+        displayName: bio.displayName,
+        socialLinks: bio.socialLinks || {},
+        customLinks: bio.customLinks || [],
+      } : null,
+    });
+  } catch (error) {
+    console.log("Error in getMe:", error.message);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -393,5 +439,6 @@ module.exports = {
   verifyToken,
   forgotPassword,
   resetPassword,
-  logout
+  logout,
+  getMe,
 };

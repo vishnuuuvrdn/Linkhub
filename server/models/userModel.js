@@ -7,6 +7,11 @@ const userSchema = new Schema({
         type: String,
         unique: true
     },
+    handle: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
     emailVerified : Boolean,
     password : String,
     resetPassword : {

@@ -158,23 +158,35 @@ const redirectToOriginal = async (req, res) => {
   try {
     const { handle, customSlung } = req.params;
 
-    const owner = await User.findOne({ handle }).select("_id");
-    if (!owner) {
-      return res.status(404).json({ message: "URL not found" });
-    }
+    let url;
+    let userId;
 
-    const userId = String(owner._id);
-    const url = await Url.findOne({ userId, customSlung });
+    if (handle && customSlung) {
+      const owner = await User.findOne({ handle }).select("_id");
+      if (!owner) {
+        return res.status(404).json({ message: "URL not found" });
+      }
+      userId = String(owner._id);
+      url = await Url.findOne({ userId, customSlung });
+    } else {
+      const slug = customSlung || handle;
+      url = await Url.findOne({ customSlung: slug });
+      if (url) {
+        userId = String(url.userId);
+      }
+    }
 
     if (!url) {
       return res.status(404).json({ message: "URL not found" });
     }
 
+    const actualSlug = customSlung || handle;
+
     try {
       const bucket = getDeviceBucket(req.get("User-Agent") || "");
 
       await Analytics.findOneAndUpdate(
-        { userId, customSlung },
+        { userId, customSlung: actualSlug },
         {
           $inc: { totalClicks: 1, [`deviceDistribution.${bucket}`]: 1 },
           $set: { lastClickTimeStamp: new Date() },
