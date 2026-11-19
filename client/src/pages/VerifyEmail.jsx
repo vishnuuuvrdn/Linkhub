@@ -31,7 +31,7 @@ export default function VerifyEmail() {
                 if (user?.email === qEmail) updateUser({ emailVerified: true });
             })
             .catch((err) => { setStatus("error"); setMessage(getErrorMessage(err)); });
-    }, []);
+    }, [qToken, qEmail, updateUser, user?.email]);
 
     const handleSend = async (e) => {
         e.preventDefault();

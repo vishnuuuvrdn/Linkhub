@@ -26,7 +26,11 @@ export default function Signup() {
         setError("");
         setLoading(true);
         try {
-            const { confirmPassword, ...payload } = formData;
+            const payload = {
+                name: formData.name,
+                email: formData.email,
+                password: formData.password,
+            };
             await authApi.register(payload);
             navigate("/login", { state: { registered: true } });
         } catch (err) {
