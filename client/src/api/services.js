@@ -4,6 +4,7 @@ export const authApi = {
     register: (data) => api.post("/api/auth/register", data),
     login: (data) => api.post("/api/auth/login", data),
     logout: () => api.post("/api/auth/logout"),
+    getMe: () => api.get("/api/auth/me"),
     sendVerification: (email, redirectLink) => api.post("/api/auth/verify-email", { email, redirectLink }),
     verifyToken: (payload) => api.post("/api/auth/verify-token", payload),
     forgotPassword: (email, redirectLink) => api.post("/api/auth/forgot-password", { email, redirectLink }),
@@ -17,7 +18,7 @@ export const linksApi = {
     analytics: async () => {
         try {
             const { data } = await api.get("/api/links/analytics");
-            return data;
+            return Array.isArray(data) ? data : [];
         } catch (err) {
             if (err.response?.data?.message?.includes("No one Clicked")) return [];
             throw err;
@@ -27,5 +28,6 @@ export const linksApi = {
 
 export const bioApi = {
     get: (username) => api.get(`/api/bio/${username}`),
+    getMe: () => api.get("/api/bio/me"),
     update: (data) => api.put("/api/bio", data),
 };
