@@ -25,7 +25,9 @@ services:
     develop:
       watch:
         - action: sync+restart
-          path: ./server/src
-          target: /app/src
+          path: ./server
+          target: /app
+          ignore:
+            - node_modules/
         - action: rebuild
           path: ./server/package.json
